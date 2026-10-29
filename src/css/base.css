@@ -1,0 +1,68 @@
+/* Reset + global defaults. Everything reads tokens, nothing hard-codes a color. */
+
+@layer dw.reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  * { margin: 0; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  img, picture, video, canvas, svg { display: block; max-width: 100%; }
+  input, button, textarea, select { font: inherit; color: inherit; }
+  p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+}
+
+@layer dw.base {
+  :root, [data-dw-mood] {
+    background-color: var(--dw-bg);
+    color: var(--dw-text);
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: var(--dw-font-sans);
+    font-size: var(--dw-text-md);
+    line-height: var(--dw-leading-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Smooth mood changes: colors ease instead of snapping. */
+  :root, [data-dw-mood], body, .dw-card, .dw-btn, .dw-input, .dw-navbar, .dw-alert, .dw-badge {
+    transition:
+      background-color var(--dw-duration) ease,
+      color var(--dw-duration) ease,
+      border-color var(--dw-duration) ease,
+      box-shadow var(--dw-duration) ease;
+  }
+
+  /* Light text on dark backgrounds looks heavier than it is; thin it slightly at night. */
+  [data-dw-mood="night"] body,
+  body[data-dw-mood="night"] { font-weight: 380; }
+
+  /* Gently dim images and video in darker moods. */
+  img, video { filter: brightness(var(--dw-image-dim)); transition: filter var(--dw-duration) ease; }
+
+  ::selection { background: var(--dw-highlight-soft); color: var(--dw-text); }
+
+  :focus-visible {
+    outline: 2px solid var(--dw-accent-ink);
+    outline-offset: 2px;
+  }
+
+  /* f.lux-style warm layer inside the page only. Strength set by --dw-warmth (0 to 0.3). */
+  :root::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: var(--dw-warmth-color);
+    opacity: var(--dw-warmth);
+    mix-blend-mode: multiply;
+    transition: opacity 1.5s ease;
+    z-index: 2147483647;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after, :root::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}

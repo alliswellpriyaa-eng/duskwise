@@ -1,0 +1,66 @@
+/* Classless styles: wrap content in .dw-prose and plain HTML looks good.
+   :where() keeps specificity at zero, so any of your own CSS overrides it. */
+
+@layer dw.classless {
+  .dw-prose { max-width: var(--dw-measure); }
+
+  .dw-prose :where(h1, h2, h3, h4) {
+    line-height: var(--dw-leading-tight);
+    text-wrap: balance;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  .dw-prose :where(h1) { font-size: var(--dw-text-3xl); margin-block: 0 var(--dw-space-4); }
+  .dw-prose :where(h2) { font-size: var(--dw-text-2xl); margin-block: var(--dw-space-6) var(--dw-space-3); }
+  .dw-prose :where(h3) { font-size: var(--dw-text-xl); margin-block: var(--dw-space-5) var(--dw-space-2); }
+
+  .dw-prose :where(p, ul, ol, blockquote, pre, figure, table) { margin-block: 0 var(--dw-space-4); }
+  .dw-prose :where(p, li) { text-wrap: pretty; }
+  .dw-prose :where(ul, ol) { padding-inline-start: var(--dw-space-5); }
+  .dw-prose :where(li + li) { margin-block-start: var(--dw-space-1); }
+
+  .dw-prose :where(a) {
+    color: var(--dw-accent-ink);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .dw-prose :where(a:hover) { text-decoration-thickness: 2px; }
+
+  .dw-prose :where(blockquote) {
+    border-inline-start: 3px solid var(--dw-accent);
+    padding-inline-start: var(--dw-space-4);
+    color: var(--dw-muted);
+    font-style: italic;
+  }
+
+  .dw-prose :where(mark) {
+    background: var(--dw-highlight-soft);
+    color: var(--dw-text);
+    padding: 0 0.15em;
+    border-radius: 0.2em;
+  }
+
+  .dw-prose :where(code) {
+    font-family: var(--dw-font-mono);
+    font-size: 0.9em;
+    background: var(--dw-surface-2);
+    padding: 0.1em 0.35em;
+    border-radius: var(--dw-radius-sm);
+  }
+  .dw-prose :where(pre) {
+    background: var(--dw-surface-2);
+    padding: var(--dw-space-4);
+    border-radius: var(--dw-radius);
+    overflow-x: auto;
+  }
+  .dw-prose :where(pre code) { background: none; padding: 0; }
+
+  .dw-prose :where(hr) { border: 0; border-top: 1px solid var(--dw-border); margin-block: var(--dw-space-6); }
+
+  .dw-prose :where(table) { border-collapse: collapse; width: 100%; font-size: var(--dw-text-sm); }
+  .dw-prose :where(th, td) { text-align: start; padding: var(--dw-space-2) var(--dw-space-3); border-bottom: 1px solid var(--dw-border); }
+  .dw-prose :where(th) { font-weight: 600; }
+
+  .dw-prose :where(img, figure) { border-radius: var(--dw-radius); }
+  .dw-prose :where(figcaption) { color: var(--dw-muted); font-size: var(--dw-text-sm); margin-top: var(--dw-space-2); }
+}

@@ -1,0 +1,294 @@
+/* Components. Each reads optional component tokens (--dw-btn-bg...) that fall back
+   to semantic tokens (--dw-accent...). Components never use primitives directly. */
+
+@layer dw.components {
+  /* ---------- Button ---------- */
+  .dw-btn {
+    --_bg: var(--dw-btn-bg, var(--dw-accent));
+    --_fg: var(--dw-btn-fg, var(--dw-on-accent));
+    /* A slightly darker edge keeps light fills (lemon, pistachio) visible on light pages. */
+    --_border: var(--dw-btn-border, color-mix(in oklch, var(--_bg) 80%, var(--dw-text)));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dw-space-2);
+    padding: var(--dw-space-2) var(--dw-space-4);
+    min-height: 2.5rem;
+    border: 1px solid var(--_border);
+    border-radius: var(--dw-btn-radius, var(--dw-radius));
+    background: var(--_bg);
+    color: var(--_fg);
+    font-weight: 600;
+    font-size: var(--dw-text-sm);
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: var(--dw-shadow);
+  }
+  .dw-btn:hover { background: color-mix(in oklch, var(--_bg) 86%, var(--dw-text)); }
+  .dw-btn:active { transform: translateY(1px); }
+  .dw-btn:disabled, .dw-btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+  .dw-btn--secondary {
+    --_bg: var(--dw-surface);
+    --_fg: var(--dw-text);
+    --_border: var(--dw-border-strong);
+  }
+  .dw-btn--secondary:hover { background: var(--dw-surface-2); }
+  .dw-btn--ghost {
+    --_bg: transparent;
+    --_fg: var(--dw-text);
+    --_border: transparent;
+    box-shadow: none;
+  }
+  .dw-btn--ghost:hover { background: var(--dw-surface-2); }
+  .dw-btn--highlight { --_bg: var(--dw-highlight); --_fg: var(--dw-on-highlight); }
+  .dw-btn--danger { --_bg: var(--dw-danger); --_fg: var(--dw-on-danger); }
+  .dw-btn--sm { min-height: 2rem; padding: var(--dw-space-1) var(--dw-space-3); font-size: var(--dw-text-xs); }
+  .dw-btn--lg { min-height: 3rem; padding: var(--dw-space-3) var(--dw-space-5); font-size: var(--dw-text-md); }
+
+  /* ---------- Form fields ---------- */
+  .dw-field { display: grid; gap: var(--dw-space-1); }
+  .dw-label { font-size: var(--dw-text-sm); font-weight: 600; }
+  .dw-hint { font-size: var(--dw-text-xs); color: var(--dw-muted); }
+
+  .dw-input {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: var(--dw-space-2) var(--dw-space-3);
+    background: var(--dw-input-bg, var(--dw-surface));
+    color: var(--dw-text);
+    border: 1px solid var(--dw-input-border, var(--dw-border-strong));
+    border-radius: var(--dw-radius);
+  }
+  .dw-input::placeholder { color: var(--dw-muted); }
+  .dw-input:focus-visible { outline: 2px solid var(--dw-accent-ink); outline-offset: 1px; border-color: var(--dw-accent-ink); }
+  .dw-input[aria-invalid="true"] { border-color: var(--dw-danger); }
+  textarea.dw-input { min-height: 6rem; resize: vertical; }
+
+  /* ---------- Select ----------
+     The arrow is drawn from tokens so it follows the mood. The open list uses the page's
+     own colors instead of the system grey: fully in browsers with customizable <select>
+     (Chrome/Edge 135+), and via option colors in Firefox and Chrome on Windows/Linux. */
+  select.dw-input {
+    cursor: pointer;
+    appearance: none;
+    padding-inline-end: 2.25rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--dw-muted) 50%),
+      linear-gradient(135deg, var(--dw-muted) 50%, transparent 50%);
+    background-position: calc(100% - 1.15rem) 52%, calc(100% - 0.8rem) 52%;
+    background-size: 0.35rem 0.35rem;
+    background-repeat: no-repeat;
+  }
+  select.dw-input option { background-color: var(--dw-surface); color: var(--dw-text); }
+
+  @supports (appearance: base-select) {
+    select.dw-input,
+    select.dw-input::picker(select) { appearance: base-select; }
+    select.dw-input::picker-icon { display: none; }
+    select.dw-input::picker(select) {
+      margin-block: 4px;
+      padding: var(--dw-space-1);
+      background: var(--dw-surface);
+      color: var(--dw-text);
+      border: 1px solid var(--dw-border);
+      border-radius: var(--dw-radius);
+      box-shadow: var(--dw-shadow), 0 12px 32px oklch(0.1 0.01 60 / 0.22);
+    }
+    select.dw-input option {
+      padding: var(--dw-space-2) var(--dw-space-3);
+      border-radius: var(--dw-radius-sm);
+      background: transparent;
+    }
+    select.dw-input option:hover,
+    select.dw-input option:focus-visible { background: var(--dw-surface-2); outline: none; }
+    select.dw-input option:checked { background: var(--dw-accent-soft); font-weight: 600; }
+    select.dw-input option::checkmark { color: var(--dw-accent-ink); }
+  }
+
+  .dw-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dw-space-2);
+    font-size: var(--dw-text-sm);
+    cursor: pointer;
+  }
+  .dw-check input:not(.dw-switch) { accent-color: var(--dw-accent); width: 1.05rem; height: 1.05rem; }
+
+  /* Switch: <input type="checkbox" class="dw-switch" role="switch"> */
+  .dw-switch {
+    appearance: none;
+    width: 2.5rem;
+    height: 1.5rem;
+    border-radius: var(--dw-radius-full);
+    background: var(--dw-border-strong);
+    position: relative;
+    cursor: pointer;
+    flex: none;
+    transition: background-color var(--dw-duration) ease;
+  }
+  .dw-switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(1.5rem - 6px);
+    height: calc(1.5rem - 6px);
+    border-radius: 50%;
+    background: var(--dw-surface);
+    transition: transform var(--dw-duration) ease;
+  }
+  .dw-switch:checked { background: var(--dw-accent); }
+  .dw-switch:checked::after { transform: translateX(1rem); }
+
+  /* ---------- Card ---------- */
+  .dw-card {
+    background: var(--dw-card-bg, var(--dw-surface));
+    border: 1px solid var(--dw-card-border, var(--dw-border));
+    border-radius: var(--dw-card-radius, var(--dw-radius-lg));
+    padding: var(--dw-card-padding, var(--dw-space-5));
+    box-shadow: var(--dw-shadow);
+  }
+  .dw-card__title { font-size: var(--dw-text-lg); font-weight: 650; line-height: var(--dw-leading-tight); }
+  .dw-card__meta { font-size: var(--dw-text-sm); color: var(--dw-muted); }
+
+  /* ---------- Alert ---------- */
+  .dw-alert {
+    --_tone: var(--dw-accent-ink);
+    --_soft: var(--dw-accent-soft);
+    display: flex;
+    gap: var(--dw-space-3);
+    padding: var(--dw-space-3) var(--dw-space-4);
+    background: var(--_soft);
+    border: 1px solid color-mix(in oklch, var(--_tone) 35%, transparent);
+    border-inline-start: 4px solid var(--_tone);
+    border-radius: var(--dw-radius);
+    color: var(--dw-text);
+    font-size: var(--dw-text-sm);
+  }
+  .dw-alert--success { --_tone: var(--dw-success); --_soft: var(--dw-success-soft); }
+  .dw-alert--warning { --_tone: var(--dw-warning); --_soft: var(--dw-warning-soft); }
+  .dw-alert--danger { --_tone: var(--dw-danger); --_soft: var(--dw-danger-soft); }
+  .dw-alert--highlight { --_tone: var(--dw-highlight-ink); --_soft: var(--dw-highlight-soft); }
+
+  /* ---------- Badge ---------- */
+  .dw-badge {
+    --_tone: var(--dw-accent-ink);
+    --_soft: var(--dw-accent-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dw-space-1);
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--dw-radius-full);
+    background: var(--_soft);
+    color: var(--dw-text);
+    border: 1px solid color-mix(in oklch, var(--_tone) 40%, transparent);
+    font-size: var(--dw-text-xs);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .dw-badge--success { --_tone: var(--dw-success); --_soft: var(--dw-success-soft); }
+  .dw-badge--warning { --_tone: var(--dw-warning); --_soft: var(--dw-warning-soft); }
+  .dw-badge--danger { --_tone: var(--dw-danger); --_soft: var(--dw-danger-soft); }
+  .dw-badge--neutral { --_tone: var(--dw-border-strong); --_soft: var(--dw-surface-2); }
+  .dw-badge--highlight { --_tone: var(--dw-highlight-ink); --_soft: var(--dw-highlight-soft); }
+
+  /* ---------- Navbar ---------- */
+  .dw-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--dw-space-4);
+    flex-wrap: wrap;
+    padding: var(--dw-space-3) var(--dw-space-5);
+    background: color-mix(in oklch, var(--dw-surface) 85%, transparent);
+    border-bottom: 1px solid var(--dw-border);
+    backdrop-filter: blur(8px);
+  }
+  .dw-navbar__brand { font-weight: 700; font-size: var(--dw-text-lg); color: var(--dw-text); text-decoration: none; }
+  .dw-navbar__links { display: flex; gap: var(--dw-space-1); list-style: none; padding: 0; flex-wrap: wrap; }
+  .dw-navbar__links a {
+    display: block;
+    padding: var(--dw-space-2) var(--dw-space-3);
+    border-radius: var(--dw-radius-sm);
+    color: var(--dw-muted);
+    text-decoration: none;
+    font-size: var(--dw-text-sm);
+    font-weight: 500;
+  }
+  .dw-navbar__links a:hover, .dw-navbar__links a[aria-current="page"] { color: var(--dw-text); background: var(--dw-surface-2); }
+
+  /* ---------- Tabs: role="tablist" with role="tab" buttons ---------- */
+  .dw-tabs { display: flex; gap: var(--dw-space-1); border-bottom: 1px solid var(--dw-border); }
+  .dw-tabs [role="tab"] {
+    padding: var(--dw-space-2) var(--dw-space-4);
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--dw-muted);
+    font-weight: 600;
+    font-size: var(--dw-text-sm);
+    cursor: pointer;
+  }
+  .dw-tabs [role="tab"]:hover { color: var(--dw-text); }
+  .dw-tabs [role="tab"][aria-selected="true"] { color: var(--dw-text); border-bottom-color: var(--dw-accent-ink); }
+  .dw-tabpanel { padding-block: var(--dw-space-4); }
+  .dw-tabpanel[hidden] { display: none; }
+
+  /* ---------- Segmented control (used by the theme toggle) ---------- */
+  .dw-segmented {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    background: var(--dw-surface-2);
+    border: 1px solid var(--dw-border);
+    border-radius: var(--dw-radius);
+  }
+  .dw-segmented button {
+    padding: var(--dw-space-1) var(--dw-space-3);
+    border: 0;
+    border-radius: calc(var(--dw-radius) - 3px);
+    background: transparent;
+    color: var(--dw-muted);
+    font-size: var(--dw-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .dw-segmented button[aria-pressed="true"] { background: var(--dw-surface); color: var(--dw-text); box-shadow: var(--dw-shadow); }
+
+  /* ---------- Modal: <dialog class="dw-modal"> ---------- */
+  .dw-modal {
+    width: min(32rem, calc(100vw - 2rem));
+    margin: auto;
+    padding: var(--dw-space-5);
+    background: var(--dw-surface);
+    color: var(--dw-text);
+    border: 1px solid var(--dw-border);
+    border-radius: var(--dw-radius-lg);
+    box-shadow: var(--dw-shadow), 0 24px 48px oklch(0 0 0 / 0.18);
+  }
+  .dw-modal::backdrop { background: oklch(0.15 0.01 260 / 0.45); backdrop-filter: blur(2px); }
+
+  /* ---------- Tooltip: <button data-dw-tooltip="Saved"> ---------- */
+  [data-dw-tooltip] { position: relative; }
+  [data-dw-tooltip]::after {
+    content: attr(data-dw-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    translate: -50% 4px;
+    padding: var(--dw-space-1) var(--dw-space-2);
+    background: var(--dw-text);
+    color: var(--dw-bg);
+    font-size: var(--dw-text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: var(--dw-radius-sm);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease, translate 120ms ease;
+  }
+  [data-dw-tooltip]:hover::after, [data-dw-tooltip]:focus-visible::after { opacity: 1; translate: -50% 0; }
+}

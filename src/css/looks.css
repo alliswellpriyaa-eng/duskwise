@@ -1,0 +1,155 @@
+/* Looks: change how components are drawn, independent of mood and colors.
+     <html data-dw-look="sketch">  hand-drawn: wobbly ink lines, dot-grid paper (chalkboard at night)
+     <html data-dw-look="paint">   watercolor: soft washes of your two theme colors on grainy paper
+   Without the attribute you get the clean default.
+   Rules repeat for nested [data-dw-mood] so a night card inside a day page draws correctly. */
+
+@layer dw.looks {
+  /* ================= Sketch ================= */
+  [data-dw-look="sketch"],
+  [data-dw-look="sketch"] [data-dw-mood] {
+    --dw-font-sans: var(--dw-font-hand);
+    --dw-sketch-line: color-mix(in oklch, var(--dw-text) 82%, transparent);
+    --dw-sketch-wobble: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    --dw-sketch-wobble-card: 18px 6px 22px 8px / 8px 20px 6px 18px;
+    --dw-shadow: 3px 3px 0 0 var(--dw-sketch-line);
+    background-image: radial-gradient(color-mix(in oklch, var(--dw-text) 13%, transparent) 1px, transparent 1.5px);
+    background-size: 22px 22px;
+  }
+  [data-dw-look="sketch"] body { font-size: 1.08rem; letter-spacing: 0.01em; }
+
+  [data-dw-look="sketch"] .dw-btn {
+    --_border: var(--dw-sketch-line);
+    border-width: 2px;
+    border-radius: var(--dw-sketch-wobble);
+    font-size: 1rem;
+    font-weight: 400;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color var(--dw-duration) ease;
+  }
+  [data-dw-look="sketch"] .dw-btn:hover { transform: rotate(-1.2deg); box-shadow: 4px 4px 0 0 var(--dw-sketch-line); }
+  [data-dw-look="sketch"] .dw-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 0 var(--dw-sketch-line); }
+  [data-dw-look="sketch"] .dw-btn--ghost { --_border: transparent; box-shadow: none; }
+  [data-dw-look="sketch"] .dw-btn--ghost:hover { box-shadow: none; text-decoration: underline wavy var(--dw-highlight-ink) 1.5px; }
+
+  [data-dw-look="sketch"] :is(.dw-card, .dw-modal) {
+    border: 2px solid var(--dw-sketch-line);
+    border-radius: var(--dw-sketch-wobble-card);
+  }
+  [data-dw-look="sketch"] .dw-card:nth-of-type(odd) { rotate: -0.25deg; }
+  [data-dw-look="sketch"] .dw-card:nth-of-type(even) { rotate: 0.3deg; }
+  [data-dw-look="sketch"] .dw-modal { box-shadow: 6px 6px 0 0 var(--dw-sketch-line); }
+
+  [data-dw-look="sketch"] .dw-input {
+    border: 2px solid var(--dw-sketch-line);
+    border-radius: var(--dw-sketch-wobble);
+    background-color: color-mix(in oklch, var(--dw-surface) 70%, transparent);
+  }
+  [data-dw-look="sketch"] .dw-switch { border: 2px solid var(--dw-sketch-line); }
+  [data-dw-look="sketch"] .dw-check input:not(.dw-switch) { width: 1.15rem; height: 1.15rem; }
+
+  [data-dw-look="sketch"] .dw-alert {
+    border: 2px solid var(--dw-sketch-line);
+    border-inline-start-width: 6px;
+    border-inline-start-color: var(--_tone);
+    border-radius: var(--dw-sketch-wobble-card);
+  }
+
+  /* Badges look like a highlighter stroke. */
+  [data-dw-look="sketch"] .dw-badge {
+    border: 0;
+    border-radius: 3px 10px 4px 12px / 10px 4px 12px 3px;
+    background: linear-gradient(100deg, transparent 2%, var(--_soft) 6%, var(--_soft) 94%, transparent 98%);
+    font-weight: 400;
+    font-size: 0.9rem;
+    padding-inline: 0.7rem;
+  }
+
+  [data-dw-look="sketch"] .dw-navbar,
+  [data-dw-look="sketch"] .dw-tabs { border-bottom: 2px dashed var(--dw-sketch-line); }
+  [data-dw-look="sketch"] .dw-tabs [role="tab"] { font-weight: 400; font-size: 1rem; }
+  [data-dw-look="sketch"] .dw-tabs [role="tab"][aria-selected="true"] {
+    border-bottom: 0;
+    text-decoration: underline wavy var(--dw-accent-ink) 2px;
+    text-underline-offset: 0.4em;
+  }
+  [data-dw-look="sketch"] .dw-segmented { border: 2px solid var(--dw-sketch-line); border-radius: var(--dw-sketch-wobble); }
+  [data-dw-look="sketch"] .dw-segmented button { font-weight: 400; font-size: 1rem; }
+  [data-dw-look="sketch"] .dw-segmented button[aria-pressed="true"] {
+    border-radius: var(--dw-sketch-wobble);
+    box-shadow: 0 0 0 2px var(--dw-sketch-line);
+  }
+
+  [data-dw-look="sketch"] .dw-prose :where(a) { text-decoration: underline wavy; text-decoration-thickness: 1.5px; }
+  [data-dw-look="sketch"] .dw-prose :where(h2, h3) {
+    text-decoration: underline var(--dw-highlight) 0.28em;
+    text-decoration-skip-ink: none;
+    text-underline-offset: -0.12em;
+  }
+  [data-dw-look="sketch"] .dw-prose :where(hr) { border-top: 2px dashed var(--dw-sketch-line); }
+  [data-dw-look="sketch"] .dw-prose :where(img) { border: 2px solid var(--dw-sketch-line); border-radius: var(--dw-sketch-wobble-card); }
+
+  /* ================= Paint ================= */
+  [data-dw-look="paint"],
+  [data-dw-look="paint"] [data-dw-mood] {
+    --dw-paint-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    --dw-paint-wash-a: color-mix(in oklch, var(--dw-accent-soft) 75%, transparent);
+    --dw-paint-wash-b: color-mix(in oklch, var(--dw-highlight-soft) 80%, transparent);
+    --dw-paint-blob: 28px 18px 32px 14px / 18px 30px 16px 28px;
+    --dw-shadow: 0 10px 28px color-mix(in oklch, var(--dw-accent) 14%, transparent);
+    background-image:
+      var(--dw-paint-grain),
+      radial-gradient(60% 50% at 8% 0%, var(--dw-paint-wash-b), transparent 70%),
+      radial-gradient(55% 45% at 100% 22%, var(--dw-paint-wash-a), transparent 70%);
+  }
+  :root[data-dw-look="paint"] { background-attachment: scroll, fixed, fixed; }
+
+  [data-dw-look="paint"] :is(.dw-card, .dw-modal) {
+    border: 1px solid color-mix(in oklch, var(--dw-border) 60%, transparent);
+    border-radius: var(--dw-paint-blob);
+    background-image:
+      radial-gradient(110% 80% at 0% 0%, var(--dw-paint-wash-a), transparent 60%),
+      radial-gradient(90% 70% at 100% 100%, var(--dw-paint-wash-b), transparent 60%);
+  }
+
+  [data-dw-look="paint"] .dw-btn {
+    --_border: transparent;
+    border-radius: 20px 12px 18px 10px / 12px 18px 10px 20px;
+    background-image: radial-gradient(130% 120% at 25% 15%, color-mix(in oklch, var(--_bg) 88%, white), var(--_bg) 55%, color-mix(in oklch, var(--_bg) 88%, black));
+    box-shadow: 0 4px 14px color-mix(in oklch, var(--_bg) 35%, transparent);
+  }
+  [data-dw-look="paint"] .dw-btn--ghost { background-image: none; box-shadow: none; }
+  [data-dw-look="paint"] .dw-btn--secondary { --_border: color-mix(in oklch, var(--dw-border-strong) 60%, transparent); }
+
+  [data-dw-look="paint"] .dw-input {
+    border-radius: 16px 10px 14px 8px / 10px 14px 8px 16px;
+    border-color: color-mix(in oklch, var(--dw-border-strong) 70%, transparent);
+  }
+
+  [data-dw-look="paint"] .dw-alert {
+    border: 0;
+    border-radius: var(--dw-paint-blob);
+    background:
+      radial-gradient(120% 140% at 0% 50%, color-mix(in oklch, var(--_tone) 22%, transparent), transparent 55%),
+      var(--_soft);
+  }
+
+  /* Badges look like a brush dab. */
+  [data-dw-look="paint"] .dw-badge {
+    border: 0;
+    border-radius: 45% 55% 50% 50% / 60% 45% 55% 40%;
+    background: radial-gradient(120% 140% at 40% 40%, var(--_soft) 55%, color-mix(in oklch, var(--_soft) 60%, var(--_tone)));
+  }
+
+  [data-dw-look="paint"] .dw-segmented { border-radius: 18px 12px 16px 10px; }
+  [data-dw-look="paint"] .dw-tabs [role="tab"][aria-selected="true"] {
+    border-bottom-color: transparent;
+    background: linear-gradient(transparent 60%, var(--dw-paint-wash-b) 60%);
+  }
+  [data-dw-look="paint"] .dw-prose :where(img) { border-radius: var(--dw-paint-blob); }
+  [data-dw-look="paint"] .dw-prose :where(blockquote) {
+    border-inline-start: 0;
+    padding: var(--dw-space-3) var(--dw-space-4);
+    border-radius: var(--dw-paint-blob);
+    background: var(--dw-paint-wash-a);
+  }
+}

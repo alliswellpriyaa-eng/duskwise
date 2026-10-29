@@ -1,0 +1,629 @@
+<title>Duskwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Atkinson+Hyperlegible:wght@400;700&family=Patrick+Hand&display=swap">
+<script>/*__NOFLASH__*/</script>
+<style>
+/*__CSS__*/
+
+/* ---- Demo page only. The library above does all the theming. ----
+   Layout: a control desk on top (clock, day strip, mode), the components below it. */
+:root {
+  --demo-display: "Fraunces", ui-serif, Georgia, serif;
+  /* The day strip is a chart of the sky, so its colors stay the same in every theme. */
+  --demo-strip-night: oklch(0.32 0.04 262);
+  --demo-strip-dusk: oklch(0.8 0.11 55);
+  --demo-strip-day: oklch(0.86 0.07 235);
+  --demo-strip-soft: oklch(0.8 0.012 235);
+}
+/* The demo's own typefaces, except in the sketch look, which brings its handwriting font. */
+:root:not([data-dw-look="sketch"]) { --dw-font-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif; }
+:root[data-dw-look="sketch"] { --demo-display: var(--dw-font-hand); }
+/* Before the engine loads, honour the viewer's chosen theme. */
+:root[data-theme="dark"]:not([data-dw-mood]) { --dw-bg: var(--dw-ember-950); --dw-text: var(--dw-sand-200); color-scheme: dark; }
+
+body {
+  background: var(--dw-bg);
+  color: var(--dw-text);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 var(--dw-space-8);
+}
+.wrap { max-width: 68rem; margin-inline: auto; display: flex; flex-direction: column; gap: var(--dw-space-7); }
+h1, h2, h3, .display { font-family: var(--demo-display); font-weight: 650; letter-spacing: -0.015em; text-wrap: balance; line-height: 1.12; }
+h2 { font-size: var(--dw-text-2xl); }
+.eyebrow { font-size: var(--dw-text-xs); text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; color: var(--dw-muted); }
+section { display: flex; flex-direction: column; gap: var(--dw-space-4); }
+section > header { display: flex; flex-direction: column; gap: var(--dw-space-1); max-width: 44rem; }
+
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--dw-surface); }
+.dw-navbar { max-width: 68rem; margin-inline: auto; border-bottom: 0; padding-inline: 0; background: none; backdrop-filter: none; }
+.topbar { background: color-mix(in oklch, var(--dw-surface) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--dw-border); }
+.brand { display: flex; align-items: center; gap: var(--dw-space-2); font-family: var(--demo-display); font-size: var(--dw-text-xl); font-weight: 650; }
+.brand svg { width: 1.4rem; height: 1.4rem; }
+
+/* Hero */
+.hero { display: grid; gap: var(--dw-space-6); grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; padding-top: var(--dw-space-7); }
+@media (max-width: 52rem) { .hero { grid-template-columns: 1fr; } }
+.hero h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); }
+.lede { font-size: var(--dw-text-lg); color: var(--dw-muted); max-width: 34rem; }
+
+/* Control desk */
+.desk { display: flex; flex-direction: column; gap: var(--dw-space-4); }
+.readout { display: flex; align-items: baseline; justify-content: space-between; gap: var(--dw-space-3); flex-wrap: wrap; }
+.clock { font-family: var(--demo-display); font-size: 2.6rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--dw-space-3); }
+.fact { display: flex; flex-direction: column; gap: 2px; }
+.fact dt { font-size: var(--dw-text-xs); color: var(--dw-muted); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; }
+.fact dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.strip-wrap { display: flex; flex-direction: column; gap: var(--dw-space-1); }
+.strip { position: relative; height: 2.25rem; border-radius: var(--dw-radius); overflow: hidden; display: flex; border: 1px solid var(--dw-border); }
+.strip span { height: 100%; }
+.strip .needle { position: absolute; top: -2px; bottom: -2px; width: 3px; margin-left: -1.5px; background: var(--dw-text); border-radius: 2px; box-shadow: 0 0 0 2px var(--dw-surface); transition: left 120ms ease; }
+.ticks { display: flex; justify-content: space-between; font-size: var(--dw-text-xs); color: var(--dw-muted); font-variant-numeric: tabular-nums; }
+.legend { display: flex; flex-wrap: wrap; gap: var(--dw-space-3); font-size: var(--dw-text-xs); color: var(--dw-muted); }
+.legend i { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 3px; margin-right: 4px; vertical-align: -1px; border: 1px solid var(--dw-border); }
+input[type="range"] { width: 100%; accent-color: var(--dw-accent); }
+.controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--dw-space-3); }
+@media (max-width: 30rem) { .controls, .facts { grid-template-columns: 1fr; } }
+
+/* Mood comparison */
+.moods { display: grid; gap: var(--dw-space-3); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 60rem) { .moods { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 30rem) { .moods { grid-template-columns: 1fr; } }
+.mood-card { border-radius: var(--dw-radius-lg); border: 1px solid var(--dw-border); padding: var(--dw-space-4); display: flex; flex-direction: column; gap: var(--dw-space-3); }
+.mood-card h3 { font-size: var(--dw-text-lg); }
+.swatches { display: flex; gap: 4px; }
+.swatches span { flex: 1; height: 1.6rem; border-radius: var(--dw-radius-sm); border: 1px solid var(--dw-border); }
+
+/* Code */
+.code { position: relative; background: var(--dw-surface-2); border: 1px solid var(--dw-border); border-radius: var(--dw-radius); padding: var(--dw-space-4); padding-right: 6rem; overflow-x: auto; font-family: var(--dw-font-mono); font-size: var(--dw-text-sm); line-height: 1.6; white-space: pre; min-width: 0; }
+.code .dw-btn { position: absolute; top: var(--dw-space-2); right: var(--dw-space-2); }
+.two { display: grid; gap: var(--dw-space-4); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.two > *, .hero > * { min-width: 0; }
+@media (max-width: 52rem) { .two { grid-template-columns: 1fr; } }
+.article-img { width: 100%; aspect-ratio: 16 / 7; object-fit: cover; max-width: 100%; }
+/* Theme picker */
+.presets { display: grid; gap: var(--dw-space-2); grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr)); }
+@media (max-width: 34rem) { .topbar .dw-navbar__links { display: none; } }
+.preset {
+  display: flex; align-items: center; gap: var(--dw-space-2);
+  padding: var(--dw-space-2) var(--dw-space-3);
+  background: var(--dw-surface); color: var(--dw-text);
+  border: 1px solid var(--dw-border); border-radius: var(--dw-radius);
+  font: inherit; font-size: var(--dw-text-sm); text-align: start; cursor: pointer;
+}
+.preset:hover { border-color: var(--dw-border-strong); }
+.preset[aria-pressed="true"] { border-color: var(--dw-accent-ink); box-shadow: 0 0 0 1px var(--dw-accent-ink); font-weight: 700; }
+.pair { display: inline-flex; flex: none; }
+.pair i { width: 1.15rem; height: 1.15rem; border-radius: 50%; border: 2px solid var(--dw-surface); }
+.pair i + i { margin-left: -0.4rem; }
+/* Each chip lights its own two colors with the current mood's lightness rules. */
+.pair .p { background: oklch(calc(var(--dw-l-fill) + var(--dw-p-b) * var(--dw-l-fill-up)) var(--dw-p-c) var(--dw-p-h)); }
+.pair .h { background: oklch(calc(var(--dw-l-fill) + var(--dw-h-b) * var(--dw-l-fill-up)) var(--dw-h-c) var(--dw-h-h)); }
+.picker { display: grid; gap: var(--dw-space-3); grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; }
+@media (max-width: 40rem) { .picker { grid-template-columns: 1fr; } }
+.count { font-variant-numeric: tabular-nums; }
+footer { color: var(--dw-muted); font-size: var(--dw-text-sm); border-top: 1px solid var(--dw-border); padding-top: var(--dw-space-4); }
+</style>
+
+<div class="topbar">
+  <nav class="dw-navbar" aria-label="Main">
+    <span class="brand">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="var(--dw-accent)"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="var(--dw-accent)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Duskwise
+    </span>
+    <ul class="dw-navbar__links">
+      <li><a href="#moods">Moods</a></li>
+      <li><a href="#themes">Themes</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#reading">Reading</a></li>
+      <li><a href="#install">Install</a></li>
+    </ul>
+    <div class="dw-segmented" role="group" aria-label="Theme mode" id="modes">
+      <button type="button" data-mode="auto" aria-pressed="true">Auto</button>
+      <button type="button" data-mode="light" aria-pressed="false">Light</button>
+      <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+      <button type="button" data-mode="warm" aria-pressed="false">Warm</button>
+    </div>
+  </nav>
+</div>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="dw-stack">
+      <p class="eyebrow">Duskwise · v0.1 prototype</p>
+      <h1>A styling library that knows what time it is.</h1>
+      <p class="lede">Buttons, forms, cards and type that shift with the sun: crisp at noon, warm at dusk, dim and amber at night. Every mood keeps WCAG AA contrast.</p>
+      <div class="dw-cluster">
+        <a class="dw-btn dw-btn--lg" href="#install">Get started</a>
+        <a class="dw-btn dw-btn--secondary dw-btn--lg" href="#themes">Pick a theme</a>
+      </div>
+    </div>
+
+    <div class="dw-card desk" aria-labelledby="desk-title">
+      <div class="readout">
+        <div>
+          <p class="eyebrow" id="desk-title">Preview any hour</p>
+          <div class="clock" id="clock" aria-live="polite">12:00</div>
+        </div>
+        <span class="dw-badge" id="mood-badge">Day</span>
+      </div>
+
+      <div class="strip-wrap">
+        <div class="strip" id="strip" aria-hidden="true"><div class="needle" id="needle"></div></div>
+        <div class="ticks" aria-hidden="true"><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      </div>
+
+      <label class="dw-sr-only" for="time">Time of day</label>
+      <input type="range" id="time" min="0" max="1439" step="5" value="720">
+
+      <div class="controls">
+        <div class="dw-field">
+          <label class="dw-label" for="weather">Weather</label>
+          <select class="dw-input" id="weather">
+            <option value="clear">Clear</option>
+            <option value="cloudy">Cloudy</option>
+            <option value="rain">Rain</option>
+            <option value="fog">Fog</option>
+          </select>
+        </div>
+        <div class="dw-field">
+          <span class="dw-label">Clock</span>
+          <label class="dw-check" style="min-height:2.5rem"><input type="checkbox" class="dw-switch" role="switch" id="live"> Follow the real time</label>
+        </div>
+      </div>
+
+      <dl class="facts">
+        <div class="fact"><dt>Sunrise</dt><dd id="sunrise">—</dd></div>
+        <div class="fact"><dt>Sunset</dt><dd id="sunset">—</dd></div>
+        <div class="fact"><dt>Night warmth</dt><dd id="warmth">0%</dd></div>
+      </dl>
+      <p class="dw-hint" id="where">Location estimated from your time zone. Nothing leaves this page.</p>
+    </div>
+  </div>
+
+  <section id="moods" aria-labelledby="moods-title">
+    <header>
+      <p class="eyebrow">Tier 2 · semantic tokens</p>
+      <h2 id="moods-title">Four moods, one set of components</h2>
+      <p class="dw-muted">Each card below sets its own <code>data-dw-mood</code>. The components inside are identical; only the tokens change.</p>
+    </header>
+    <div class="moods" id="mood-cards"></div>
+    <div class="dw-cluster dw-text-sm dw-muted legend" aria-label="Day strip legend">
+      <span><i style="background:var(--demo-strip-night)"></i>Night</span>
+      <span><i style="background:var(--demo-strip-dusk)"></i>Dawn and dusk</span>
+      <span><i style="background:var(--demo-strip-day)"></i>Day</span>
+      <span><i style="background:var(--demo-strip-soft)"></i>Soft (grey weather)</span>
+    </div>
+  </section>
+
+  <section id="themes" aria-labelledby="themes-title">
+    <header>
+      <p class="eyebrow">Two-color themes · looks</p>
+      <h2 id="themes-title">Pick any two colors, then pick how it's drawn</h2>
+      <p class="dw-muted"><span class="count" id="combo-count">28 colors, 756 combinations</span>. The primary color drives buttons and links; the highlight color drives badges, marks and selections. Each mood re-lights both, so every pair stays readable at noon and at midnight.</p>
+    </header>
+
+    <div class="dw-card dw-stack">
+      <div class="picker">
+        <div class="dw-field">
+          <label class="dw-label" for="primary">Primary color</label>
+          <select class="dw-input" id="primary"></select>
+        </div>
+        <div class="dw-field">
+          <label class="dw-label" for="highlight">Highlight color</label>
+          <select class="dw-input" id="highlight"></select>
+        </div>
+        <div class="dw-cluster">
+          <button class="dw-btn dw-btn--ghost" type="button" id="reset-palette">Use mood colors</button>
+        </div>
+      </div>
+
+      <div class="dw-stack dw-gap-2">
+        <span class="dw-label" id="presets-label">Templates</span>
+        <div class="presets" id="presets" role="group" aria-labelledby="presets-label"></div>
+      </div>
+
+      <div class="dw-stack dw-gap-2">
+        <span class="dw-label" id="look-label">Look</span>
+        <div class="dw-cluster">
+          <div class="dw-segmented" role="group" aria-labelledby="look-label" id="looks">
+            <button type="button" data-look="clean" aria-pressed="true">Clean</button>
+            <button type="button" data-look="sketch" aria-pressed="false">Sketch</button>
+            <button type="button" data-look="paint" aria-pressed="false">Paint</button>
+          </div>
+          <span class="dw-hint" id="look-hint">Crisp lines and soft shadows.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="components" aria-labelledby="components-title">
+    <header>
+      <p class="eyebrow">Components</p>
+      <h2 id="components-title">The parts you'd expect from Bootstrap</h2>
+      <p class="dw-muted">Drag the time slider above and watch shadows soften into borders, accents warm up and images dim after sunset.</p>
+    </header>
+
+    <div class="two">
+      <div class="dw-card dw-stack">
+        <h3 class="dw-card__title">Buttons and badges</h3>
+        <div class="dw-cluster">
+          <button class="dw-btn" type="button">Save changes</button>
+          <button class="dw-btn dw-btn--highlight" type="button">Highlight</button>
+          <button class="dw-btn dw-btn--secondary" type="button">Preview</button>
+          <button class="dw-btn dw-btn--ghost" type="button">Cancel</button>
+          <button class="dw-btn dw-btn--danger" type="button">Delete</button>
+        </div>
+        <div class="dw-cluster">
+          <button class="dw-btn dw-btn--sm" type="button" data-dw-tooltip="Copied to clipboard">Small with tooltip</button>
+          <button class="dw-btn dw-btn--secondary dw-btn--sm" type="button" disabled>Disabled</button>
+        </div>
+        <div class="dw-cluster">
+          <span class="dw-badge">New</span>
+          <span class="dw-badge dw-badge--highlight">Featured</span>
+          <span class="dw-badge dw-badge--success">Passing</span>
+          <span class="dw-badge dw-badge--warning">Review</span>
+          <span class="dw-badge dw-badge--danger">Failed</span>
+          <span class="dw-badge dw-badge--neutral">Draft</span>
+        </div>
+      </div>
+
+      <form class="dw-card dw-stack" id="signup" novalidate>
+        <h3 class="dw-card__title">Form fields</h3>
+        <div class="dw-field">
+          <label class="dw-label" for="email">Work email</label>
+          <input class="dw-input" id="email" type="email" placeholder="you@company.com" value="priya@example.com">
+          <span class="dw-hint">We'll send release notes here.</span>
+        </div>
+        <div class="dw-field">
+          <label class="dw-label" for="plan">Plan</label>
+          <select class="dw-input" id="plan"><option>Open source</option><option>Team</option></select>
+        </div>
+        <label class="dw-check"><input type="checkbox" id="updates" checked> Email me when a new mood ships</label>
+        <div class="dw-cluster">
+          <button class="dw-btn" type="submit">Subscribe</button>
+          <span class="dw-hint" id="signup-status" role="status"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="dw-stack">
+      <div class="dw-alert" role="note"><strong>Tip:</strong> Wrap any element in <code>data-dw-mood="night"</code> to preview a mood locally.</div>
+      <div class="dw-alert dw-alert--highlight" role="note"><strong>New:</strong> two-color themes. Try a template above and drag the clock to midnight.</div>
+      <div class="dw-alert dw-alert--success" role="note"><strong>Contrast check passed.</strong> All 21 text and background pairs meet WCAG in every mood, for every one of the 28 theme colors.</div>
+      <div class="dw-alert dw-alert--warning" role="note"><strong>Weather is off by default.</strong> Turn it on with <code>weather: true</code>; coordinates are rounded to about 10 km.</div>
+      <div class="dw-alert dw-alert--danger" role="note"><strong>Build failed.</strong> A custom token set dropped below 4.5:1 on muted text.</div>
+    </div>
+
+    <div class="dw-card">
+      <div class="dw-tabs" role="tablist" aria-label="Release notes">
+        <button role="tab" id="tab-1" aria-selected="true" aria-controls="panel-1" type="button">Overview</button>
+        <button role="tab" id="tab-2" aria-selected="false" aria-controls="panel-2" type="button" tabindex="-1">Tokens</button>
+        <button role="tab" id="tab-3" aria-selected="false" aria-controls="panel-3" type="button" tabindex="-1">Engine</button>
+      </div>
+      <div class="dw-tabpanel" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
+        <p>Duskwise ships as one CSS file. Add the optional engine and the page follows sunrise and sunset at your visitor's location.</p>
+      </div>
+      <div class="dw-tabpanel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
+        <p>90 primitive colors and 28 theme colors in OKLCH, 22 semantic color roles per mood, and optional component tokens such as <code>--dw-btn-bg</code>.</p>
+      </div>
+      <div class="dw-tabpanel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+        <p>About 6 KB minified. It writes one attribute and one CSS variable to the page and never touches your components.</p>
+      </div>
+      <div class="dw-cluster">
+        <button class="dw-btn dw-btn--secondary" type="button" id="open-modal">Open a modal</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="reading" aria-labelledby="reading-title">
+    <header>
+      <p class="eyebrow">Classless styles</p>
+      <h2 id="reading-title">Plain HTML that reads well at 11pm</h2>
+    </header>
+    <div class="dw-card">
+      <article class="dw-prose">
+        <img class="article-img" alt="Illustrated hills under an evening sky" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 350'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%236fa8dc'/%3E%3Cstop offset='1' stop-color='%23f6c58f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='800' height='350' fill='url(%23s)'/%3E%3Ccircle cx='600' cy='210' r='46' fill='%23ffe3a3'/%3E%3Cpath d='M0 250 C150 190 260 230 380 205 S620 170 800 220 V350 H0Z' fill='%23557a5c'/%3E%3Cpath d='M0 290 C180 250 330 300 470 270 S700 250 800 280 V350 H0Z' fill='%233f5c46'/%3E%3C/svg%3E">
+        <h3>Why the screen should follow the sky</h3>
+        <p>Your eyes adapt to the room around you. At noon a bright white page feels normal; at night the same page glows like a lamp. Comfort lowers blue light and brightness after sunset, inside your app only, so the reading experience matches <mark>the room you're sitting in</mark>.</p>
+        <blockquote>Text contrast never drops below 4.5:1, whatever the mood.</blockquote>
+        <p>The line length stays near 68 characters, headings balance their lines, and light text gets slightly lighter weight at night, because light-on-dark type looks heavier than it is.</p>
+        <table>
+          <thead><tr><th>Mood</th><th>When</th><th>What changes</th></tr></thead>
+          <tbody>
+            <tr><td>Day</td><td>Sunrise + 30 min to sunset − 60 min</td><td>Crisp contrast, soft shadows</td></tr>
+            <tr><td>Dusk</td><td>The hour before sunset, and dawn</td><td>Warm neutrals, orange accent</td></tr>
+            <tr><td>Night</td><td>Sunset + 30 min to dawn</td><td>Warm dark, borders replace shadows, images dimmed</td></tr>
+            <tr><td>Soft</td><td>Daytime with cloud, rain or fog</td><td>Lower chroma surfaces</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <section id="install" aria-labelledby="install-title">
+    <header>
+      <p class="eyebrow">Install</p>
+      <h2 id="install-title">One stylesheet, one optional script</h2>
+    </header>
+    <div class="two">
+      <div class="dw-stack">
+        <p class="dw-bold">CSS only</p>
+        <div class="code" id="code-css"><button class="dw-btn dw-btn--secondary dw-btn--sm" type="button" data-copy="code-css">Copy</button>npm install duskwise
+
+import "duskwise/duskwise.css";</div>
+      </div>
+      <div class="dw-stack">
+        <p class="dw-bold">With the ambient engine</p>
+        <div class="code" id="code-js"><button class="dw-btn dw-btn--secondary dw-btn--sm" type="button" data-copy="code-js">Copy</button>import { createAmbientTheme } from "duskwise";
+
+const theme = createAmbientTheme({
+  mode: "auto",
+  nightWarmth: 0.12,
+});</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Duskwise v0.1 prototype. MIT licensed.</footer>
+</main>
+
+<dialog class="dw-modal" id="modal" aria-labelledby="modal-title">
+  <div class="dw-stack">
+    <h3 class="dw-card__title" id="modal-title">Switch to night mode?</h3>
+    <p class="dw-muted">You can always return to Auto from the top bar.</p>
+    <div class="dw-cluster">
+      <button class="dw-btn" type="button" id="modal-night">Use night</button>
+      <button class="dw-btn dw-btn--ghost" type="button" id="modal-close">Keep current</button>
+    </div>
+  </div>
+</dialog>
+
+<script>/*__JS__*/</script>
+<script>
+(function () {
+  var C = window.Duskwise;
+  var $ = function (id) { return document.getElementById(id); };
+  var MOOD_LABEL = { day: "Day", dusk: "Dusk", night: "Night", soft: "Soft" };
+  var MOOD_BADGE = { day: "", dusk: "dw-badge--warning", night: "dw-badge--neutral", soft: "dw-badge--neutral" };
+  var location = C.estimateLocation();
+  var NIGHT_WARMTH = 0.15;
+
+  var minutes = 720;
+  var live = false;
+  var theme = null;
+
+  function previewDate() {
+    if (live) return new Date();
+    var d = new Date();
+    d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+    return d;
+  }
+  var fmt = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+  function start() {
+    var prev = theme ? theme.getState() : null;
+    if (theme) theme.destroy();
+    theme = C.createAmbientTheme({
+      location: location,
+      weather: $("weather").value,
+      nightWarmth: NIGHT_WARMTH,
+      refreshMinutes: 1,
+      now: previewDate,
+      mode: prev ? prev.mode : undefined,
+      palette: prev ? prev.palette : undefined,
+      look: prev ? prev.look : undefined,
+    });
+    theme.subscribe(render);
+  }
+
+  var LOOK_HINT = {
+    clean: "Crisp lines and soft shadows.",
+    sketch: "Hand-drawn ink on dot-grid paper. At night it turns into chalk on a board.",
+    paint: "Watercolor washes of your two colors on grainy paper.",
+  };
+
+  function renderTheme(s) {
+    var p = s.palette;
+    $("primary").value = p ? p.primary : "";
+    $("highlight").value = p ? p.highlight : "";
+    var id = p ? p.primary + "-" + p.highlight : "";
+    document.querySelectorAll("#presets .preset").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.preset === id));
+    });
+    document.querySelectorAll("#looks button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.look === s.look));
+    });
+    $("look-hint").textContent = LOOK_HINT[s.look];
+    $("reset-palette").disabled = !p;
+  }
+
+  function render(s) {
+    var at = previewDate();
+    $("clock").textContent = fmt.format(at);
+    var badge = $("mood-badge");
+    badge.textContent = MOOD_LABEL[s.mood] + (s.mode === "auto" ? "" : " · manual");
+    badge.className = "dw-badge " + MOOD_BADGE[s.mood];
+    $("sunrise").textContent = s.sun.sunrise ? fmt.format(s.sun.sunrise) : "None today";
+    $("sunset").textContent = s.sun.sunset ? fmt.format(s.sun.sunset) : "None today";
+    $("warmth").textContent = Math.round(s.warmth * 100) + "%";
+    var mins = at.getHours() * 60 + at.getMinutes();
+    $("needle").style.left = (mins / 1440 * 100) + "%";
+    if (live) $("time").value = mins;
+    document.querySelectorAll("#modes button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.mode === s.mode));
+    });
+    drawStrip(s);
+    renderTheme(s);
+  }
+
+  var stripKey = "";
+  function drawStrip(s) {
+    var weather = $("weather").value;
+    var day = previewDate(); day.setHours(0, 0, 0, 0);
+    var key = day.toDateString() + weather;
+    if (key === stripKey) return;
+    stripKey = key;
+    var strip = $("strip");
+    strip.querySelectorAll("span").forEach(function (n) { n.remove(); });
+    var step = 15, current = null, width = 0;
+    function flush() {
+      if (!current) return;
+      var span = document.createElement("span");
+      span.style.width = (width / 1440 * 100) + "%";
+      span.style.background = "var(--demo-strip-" + current + ")";
+      strip.insertBefore(span, $("needle"));
+    }
+    for (var m = 0; m < 1440; m += step) {
+      var t = new Date(day.getTime() + m * 60000);
+      var sun = C.getSunTimes(t, location.latitude, location.longitude);
+      var mood = C.pickMood({ now: t, sun: sun, weather: weather });
+      if (mood !== current) { flush(); current = mood; width = 0; }
+      width += step;
+    }
+    flush();
+  }
+
+  // Four scoped mood cards, built from the same markup.
+  var cards = $("mood-cards");
+  [["day", "Day", "Crisp and bright for daylight hours."],
+   ["dusk", "Dusk", "Warmer whites and an orange accent around sunset."],
+   ["night", "Night", "Warm dark surfaces; borders replace shadows."],
+   ["soft", "Soft", "Lower chroma for grey, rainy daytimes."]].forEach(function (m) {
+    var el = document.createElement("div");
+    el.className = "mood-card";
+    el.setAttribute("data-dw-mood", m[0]);
+    el.innerHTML =
+      '<h3>' + m[1] + '</h3>' +
+      '<p class="dw-text-sm dw-muted">' + m[2] + '</p>' +
+      '<div class="swatches" aria-hidden="true"><span style="background:var(--dw-bg)"></span><span style="background:var(--dw-surface-2)"></span><span style="background:var(--dw-accent)"></span><span style="background:var(--dw-highlight)"></span><span style="background:var(--dw-text)"></span></div>' +
+      '<div class="dw-cluster"><button class="dw-btn dw-btn--sm" type="button">Primary</button><span class="dw-badge dw-badge--success">Ready</span></div>';
+    cards.appendChild(el);
+  });
+
+  $("time").addEventListener("input", function (e) {
+    minutes = Number(e.target.value);
+    if (live) { live = false; $("live").checked = false; }
+    theme.refresh();
+  });
+  $("weather").addEventListener("change", start);
+
+  // Theme pickers: two selects with every color, plus the curated templates.
+  var label = function (name) { return name.charAt(0).toUpperCase() + name.slice(1); };
+  ["primary", "highlight"].forEach(function (id) {
+    var sel = $(id);
+    var none = document.createElement("option");
+    none.value = ""; none.textContent = "Mood default";
+    sel.appendChild(none);
+    C.COLOR_NAMES.forEach(function (name) {
+      var o = document.createElement("option");
+      o.value = name; o.textContent = label(name);
+      sel.appendChild(o);
+    });
+  });
+  var n = C.COLOR_NAMES.length;
+  $("combo-count").textContent = n + " colors, " + n * (n - 1) + " combinations, " + Object.keys(C.PRESETS).length + " templates";
+
+  function applyPicked(changed) {
+    var p = $("primary").value, h = $("highlight").value;
+    if (!p && !h) { theme.setPalette(null); return; }
+    var current = theme.getState().palette;
+    // Filling in one select borrows the other from the current palette, or a sensible partner.
+    if (!p) p = current ? current.primary : (h === "cobalt" ? "pink" : "cobalt");
+    if (!h) h = current ? current.highlight : (p === "amber" ? "rose" : "amber");
+    if (p === h) {
+      var other = changed === "primary" ? "highlight" : "primary";
+      var pick = C.COLOR_NAMES.find(function (c) { return c !== p; });
+      if (other === "highlight") h = pick; else p = pick;
+    }
+    theme.setPalette(p, h);
+  }
+  $("primary").addEventListener("change", function () { applyPicked("primary"); });
+  $("highlight").addEventListener("change", function () { applyPicked("highlight"); });
+  $("reset-palette").addEventListener("click", function () { theme.setPalette(null); });
+
+  var presetBox = $("presets");
+  Object.keys(C.PRESETS).forEach(function (id) {
+    var pair = C.PRESETS[id];
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "preset";
+    b.dataset.preset = id;
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML =
+      '<span class="pair" aria-hidden="true">' +
+      '<i class="p" data-dw-primary="' + pair[0] + '"></i>' +
+      '<i class="h" data-dw-highlight="' + pair[1] + '"></i></span>' +
+      '<span>' + label(pair[0]) + ' &amp; ' + label(pair[1]) + '</span>';
+    b.addEventListener("click", function () { theme.setPalette(id); });
+    presetBox.appendChild(b);
+  });
+
+  $("looks").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-look]");
+    if (b) theme.setLook(b.dataset.look);
+  });
+  $("live").addEventListener("change", function (e) { live = e.target.checked; theme.refresh(); });
+  $("modes").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]");
+    if (b) theme.setMode(b.dataset.mode);
+  });
+
+  // Tabs with arrow-key support.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  function select(tab) {
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    tab.focus();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener("click", function () { select(t); });
+    t.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowRight") select(tabs[(i + 1) % tabs.length]);
+      if (e.key === "ArrowLeft") select(tabs[(i - 1 + tabs.length) % tabs.length]);
+    });
+  });
+
+  var modal = $("modal");
+  $("open-modal").addEventListener("click", function () { modal.showModal(); });
+  $("modal-close").addEventListener("click", function () { modal.close(); });
+  $("modal-night").addEventListener("click", function () { theme.setMode("dark"); modal.close(); });
+
+  $("signup").addEventListener("submit", function (e) {
+    e.preventDefault();
+    $("signup-status").textContent = "Subscribed (demo only, nothing was sent).";
+  });
+
+  document.querySelectorAll("[data-copy]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var box = $(btn.dataset.copy);
+      var text = box.textContent.replace(/^Copy/, "").trim();
+      var done = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy"; }, 1500); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(box);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        btn.textContent = "Selected";
+      };
+      try { navigator.clipboard.writeText(text).then(done, fallback); } catch (err) { fallback(); }
+    });
+  });
+
+  var tz = "";
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+  $("where").textContent = "Sun times estimated from your time zone" + (tz ? " (" + tz + ")" : "") + ". Nothing leaves this page.";
+
+  // Start at the real time of day so the first view matches the room you're in.
+  var now = new Date();
+  minutes = now.getHours() * 60 + now.getMinutes();
+  $("time").value = minutes;
+  start();
+})();
+</script>

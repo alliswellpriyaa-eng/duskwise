@@ -1,0 +1,32 @@
+/* A small set of layout and text helpers. Not a Tailwind replacement. */
+
+@layer dw.utilities {
+  .dw-container { width: min(72rem, 100% - 2rem); margin-inline: auto; }
+
+  .dw-stack { display: flex; flex-direction: column; gap: var(--dw-gap, var(--dw-space-4)); }
+  .dw-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--dw-gap, var(--dw-space-3)); }
+  .dw-grid {
+    display: grid;
+    gap: var(--dw-gap, var(--dw-space-4));
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--dw-min, 16rem), 100%), 1fr));
+  }
+  .dw-gap-2 { --dw-gap: var(--dw-space-2); }
+  .dw-gap-4 { --dw-gap: var(--dw-space-4); }
+  .dw-gap-6 { --dw-gap: var(--dw-space-6); }
+
+  .dw-mt-2 { margin-top: var(--dw-space-2); }
+  .dw-mt-4 { margin-top: var(--dw-space-4); }
+  .dw-mt-6 { margin-top: var(--dw-space-6); }
+  .dw-p-4 { padding: var(--dw-space-4); }
+  .dw-p-6 { padding: var(--dw-space-6); }
+
+  .dw-muted { color: var(--dw-muted); }
+  .dw-text-sm { font-size: var(--dw-text-sm); }
+  .dw-text-lg { font-size: var(--dw-text-lg); }
+  .dw-bold { font-weight: 650; }
+  .dw-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dw-sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+}
