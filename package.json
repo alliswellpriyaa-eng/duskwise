@@ -32,7 +32,8 @@
     "build": "rm -rf dist && npm run build:css && npm run build:js",
     "build:demo": "npm run build && node demo/build-demo.mjs",
     "test": "vitest run",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
     "css",
