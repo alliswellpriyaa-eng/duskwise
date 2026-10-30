@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Duskwise test page</title>
+  <!-- Duskwise from npm, through the unpkg CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/duskwise@0.1.0/dist/duskwise.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap">
+  <style>
+    body { padding: 2rem 1rem; }
+  </style>
+</head>
+<body>
+  <main class="dw-container dw-stack dw-gap-6">
+    <header class="dw-stack dw-gap-2">
+      <h1 style="font-size: var(--dw-text-3xl)">Testing Duskwise</h1>
+      <p class="dw-muted">This page loads the published package from npm. Use the controls to try moods, colors and looks.</p>
+    </header>
+
+    <div class="dw-card dw-stack">
+      <div class="dw-grid" style="--dw-min: 11rem">
+        <div class="dw-field">
+          <label class="dw-label" for="mode">Mode</label>
+          <select class="dw-input" id="mode">
+            <option value="auto">Auto (follows the sun)</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="warm">Warm</option>
+          </select>
+        </div>
+        <div class="dw-field">
+          <label class="dw-label" for="preset">Template</label>
+          <select class="dw-input" id="preset"><option value="">Mood colors</option></select>
+        </div>
+        <div class="dw-field">
+          <label class="dw-label" for="look">Look</label>
+          <select class="dw-input" id="look">
+            <option value="clean">Clean</option>
+            <option value="sketch">Sketch</option>
+            <option value="paint">Paint</option>
+          </select>
+        </div>
+      </div>
+      <p class="dw-hint" id="status">Loading…</p>
+    </div>
+
+    <div class="dw-grid">
+      <div class="dw-card dw-stack">
+        <h2 class="dw-card__title">Buttons</h2>
+        <div class="dw-cluster">
+          <button class="dw-btn" type="button">Primary</button>
+          <button class="dw-btn dw-btn--highlight" type="button">Highlight</button>
+          <button class="dw-btn dw-btn--secondary" type="button">Secondary</button>
+          <button class="dw-btn dw-btn--danger" type="button">Delete</button>
+        </div>
+        <div class="dw-cluster">
+          <span class="dw-badge">New</span>
+          <span class="dw-badge dw-badge--highlight">Featured</span>
+          <span class="dw-badge dw-badge--success">Passing</span>
+          <span class="dw-badge dw-badge--danger">Failed</span>
+        </div>
+      </div>
+
+      <form class="dw-card dw-stack" onsubmit="event.preventDefault()">
+        <h2 class="dw-card__title">Form</h2>
+        <div class="dw-field">
+          <label class="dw-label" for="email">Email</label>
+          <input class="dw-input" id="email" type="email" placeholder="you@example.com">
+        </div>
+        <label class="dw-check"><input type="checkbox" class="dw-switch" role="switch" checked> Notifications</label>
+        <button class="dw-btn" type="submit">Save</button>
+      </form>
+    </div>
+
+    <div class="dw-alert dw-alert--success">Everything here is styled by the published duskwise@0.1.0 package.</div>
+
+    <article class="dw-card dw-prose">
+      <h2>Classless article styles</h2>
+      <p>Plain HTML inside <code>.dw-prose</code> gets comfortable line length, spacing and <mark>highlighted text</mark> automatically.</p>
+      <blockquote>Try Dark mode with the Sketch look for a chalkboard.</blockquote>
+    </article>
+  </main>
+
+  <!-- The optional engine, also from npm (exposes window.Duskwise) -->
+  <script src="https://unpkg.com/duskwise@0.1.0/dist/duskwise.global.js"></script>
+  <script>
+    const theme = Duskwise.createAmbientTheme({ nightWarmth: 0.12 });
+    const $ = (id) => document.getElementById(id);
+
+    for (const id of Object.keys(Duskwise.PRESETS)) {
+      const [p, h] = Duskwise.PRESETS[id];
+      $("preset").add(new Option(`${p} & ${h}`, id));
+    }
+
+    theme.subscribe((s) => {
+      $("mode").value = s.mode;
+      $("look").value = s.look;
+      $("preset").value = s.palette ? `${s.palette.primary}-${s.palette.highlight}` : "";
+      const sunset = s.sun.sunset ? s.sun.sunset.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "none";
+      $("status").textContent = `Current mood: ${s.mood} · sunset today: ${sunset} · Duskwise is working.`;
+    });
+
+    $("mode").onchange = (e) => theme.setMode(e.target.value);
+    $("look").onchange = (e) => theme.setLook(e.target.value);
+    $("preset").onchange = (e) => theme.setPalette(e.target.value || null);
+  </script>
+</body>
+</html>
